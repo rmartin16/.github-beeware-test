@@ -61,6 +61,7 @@ body:
       description: Paste or upload relevant log files; for instance, Briefcase can create a logfile with the ``--log`` flag.
       value: |
         ```
+        
         ```
     validations:
       required: false
