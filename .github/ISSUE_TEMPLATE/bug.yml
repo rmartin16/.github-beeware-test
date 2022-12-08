@@ -16,7 +16,7 @@ body:
     id: reproduce
     attributes:
       label: Steps to reproduce
-      description: Steps to reproduce the behavior
+      description: Steps to reproduce the behavior.
       value: |
         1. Go to '...'
         2. Click on '....'
@@ -37,7 +37,7 @@ body:
     id: screenshots
     attributes:
       label: Screenshots
-      description: Please add screenshots, if applicable
+      description: Please add screenshots, if applicable.
     validations:
       required: false
 
@@ -58,7 +58,7 @@ body:
   - type: textarea
     attributes:
       label: Logs
-      description: Paste or upload relevant log files; for instance, Briefcase can create a logfile with the ``--log`` flag.
+      description: Paste or upload relevant log files. Briefcase will create a logfile when invoked with the ``--log`` flag.
       value: |
         ```
         
