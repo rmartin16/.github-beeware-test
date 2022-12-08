@@ -46,14 +46,14 @@ body:
       label: Environment
       description: Include versions for all relevant dependencies.
       value: |
-         - Operating System:
-         - Python version:
-         - Software versions:
-           - Briefcase:
-           - Toga:
-           - ...
-      validations:
-        required: true
+        - Operating System:
+        - Python version:
+        - Software versions:
+          - Briefcase:
+          - Toga:
+          - ...
+    validations:
+      required: true
 
   - type: textarea
     attributes:
