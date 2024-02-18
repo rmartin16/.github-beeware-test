@@ -1,0 +1,84 @@
+name: Pre-commit Checks
+
+#######
+# Runs the repository's pre-commit hooks.
+#######
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use; defaults to latest Python release."
+        default: "3.X"
+        type: string
+      repository:
+        description: "GitHub repository to checkout; defaults to repo running this workflow."
+        default: ${{ github.repository }}
+        type: string
+      pre-commit-source:
+        description: "The arguments for `pip install` to install pre-commit; use ./path/to/package[dev] for the repo's pinned version."
+        default: ".[dev]"
+        type: string
+      runner-os:
+        description: "Runner OS to use to run pre-commit; defaults to ubuntu-latest"
+        default: "ubuntu-latest"
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ${{ inputs.runner-os }}
+    timeout-minutes: 10
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+      with:
+        repository: ${{ inputs.repository }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5.0.0
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: |
+          **/setup.cfg
+          **/pyproject.toml
+          .pre-commit-config.yaml
+
+    - name: Cache pre-commit
+      uses: actions/cache@v4.0.0
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+    - name: Update pip
+      run: python -m pip install -U pip
+
+    - name: Install pre-commit
+      run: python -m pip install ${{ inputs.pre-commit-source }}
+
+    - name: Run pre-commit
+      id: pre-commit
+      run: pre-commit run --show-diff-on-failure --color=always --all-files
+
+    - name: Pre-commit Resolution Instructions
+      if: always() && steps.pre-commit.outcome == 'failure'
+      run: |
+        echo
+        echo '::error::*************************************************************************'
+        echo '::error::** Pre-commit checks failed                                            **'
+        echo '::error::*************************************************************************'
+        echo '::error:: '
+        echo '::error::The Pre-commit checks found issues with the changes in this PR.'
+        echo '::error:: '
+        echo '::error::Visit the docs below to configure pre-commit in your dev environment:'
+        echo '::error:: '
+        echo '::error::    https://beeware.org/contributing/how/process#code-style'
+        echo '::error:: '
+        echo '::error::*************************************************************************'
+        exit 1

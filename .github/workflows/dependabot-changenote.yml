@@ -1,0 +1,49 @@
+name: Dependabot Change Note
+
+on:
+  workflow_call:
+    secrets:
+      BRUTUS_PAT_TOKEN:
+        required: true
+
+permissions:
+  pull-requests: write
+
+jobs:
+  changenote:
+    name: Dependabot Change Note
+    if: github.actor == 'dependabot[bot]' && github.repository != 'beeware/.github'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.BRUTUS_PAT_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config --local user.email "$(git log --pretty='%ae' -1)"
+          git config --local user.name "dependabot[bot]"
+
+      - name: Commit Change Note
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # Retrieve PR number from GitHub API
+          PR_NUM=$(gh api repos/{owner}/{repo}/commits/${{ github.event.head_commit.id }}/pulls --jq '.[].number')
+          CHANGENOTE_FILEPATH="./changes/${PR_NUM}.misc.rst"
+
+          # Create change note from first line of dependabot commit
+          NEWS=$(printf "%s" "${{ github.event.head_commit.message }}" | head -n1 | sed -e 's/Bump/Updated/')
+          printf "%s.\n" "${NEWS}" > "${CHANGENOTE_FILEPATH}"
+
+          # Commit the change note
+          git add "${CHANGENOTE_FILEPATH}"
+          # "dependabot skip" tells Dependabot to continue rebasing this branch despite foreign commits
+          git commit -m "Add changenote. [dependabot skip]"
+
+      - name: Push
+        run: git push origin
